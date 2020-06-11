@@ -5,9 +5,18 @@ import os
 import sys
 sys.path.insert(1, os.getenv('SOL_PATH'))
 
+#Assignment Imports
 import A1_Spiral as a1
 import A2_Cipher as a2
+
+
+import 
+#Additional Packages
+import math
+import json
+import requests
 import random as rand
+
 
 # NOTE: Problem refers to HackerRank Problem for the Assignment Submissions 
 # (i.e. Assignment 1 contained two HackerRank problems in its test: create_spiral and sum_sub_grid)
@@ -16,6 +25,8 @@ import random as rand
 format_str = lambda i, num_tests: ('0' * ((len(num_tests)-len(i)) if (len(num_tests)-len(i)) >= 2 else 1)) + i
 #generates file path depending on problem, input/output, and number
 file_name = lambda problem, stem, num: problem + ('/input' if stem == 0 else '/output') + num + '.txt'
+#Determines which problems' testcases we are currently generating
+choose_func = lambda func_name, input_path, output_path: (func_name in input_path and func_name in output_path) 
 
 #For input/output.txt file paths
 script_dir = os.getenv('SCRIPT_PATH')
@@ -33,6 +44,7 @@ def init_paths(num_tests):
             file_paths[func].append(temp)
     return None
 
+#Generates Assignment 1's testcases
 def a1_test_cases():
     #Choose correct file paths for assignment 1's problem
     assign_num = a1_test_cases.__name__[0:2]
@@ -41,9 +53,45 @@ def a1_test_cases():
             for testcase in file_paths[problem]:
                 input_path = os.path.join(script_dir, testcase[0])
                 output_path = os.path.join(script_dir, testcase[1])
+                #Determine which problems' testcases are being generated based on file path
+                if choose_func(a1.create_spiral.__name__, input_path, output_path):
+                    #create_spiral's test cases
+                    dim = rand.randint(5, 100)
+                    #Write input values
+                    fptr = open(input_path, 'w')
+                    fptr.write(str(dim))
+                    fptr.close()
+                    #write output
+                    fptr = open(output_path, 'w')
+                    try: 
+                        write_arr(fptr, a1.create_spiral(dim))
+                    except Exception as e: 
+                        print('create_spiral failed: ' + str(dim))
+                        print(e)
+                    finally:
+                        fptr.close()
+                elif choose_func(a1.sum_sub_grid.__name__, input_path, output_path):
+                    #sum_sub_grid's test cases
+                    dim = rand.randint(5, 100)
+                    val = rand.randint(1, math.ceil(pow(dim, 2)*1.5))
+                    #write input values
+                    fptr = open(input_path, 'w')
+                    fptr.write(str(dim) + str(val))
+                    fptr.close()
+                    #write output
+                    fptr = open(output_path, 'w')
+                    try:
+                        fptr.write(str(a1.sum_sub_grid(a1.create_spiral(dim), val)))
+                    except Exception as e:
+                        print('sum_sub_grid failed (dim, val): ' + '(' + str(dim) + ', ' + str(val) + ') ' + testcase[1])
+                        print(e)
+                    finally:
+                        fptr.close()
     return None
 
+#Generates Assignment 2's testcases
 def a2_test_cases():
+    words = requests.get("http://raw.githubusercontent.com/sindresorhus/mnemonic-words/master/words.json").json()
     #Choose correct file paths for assignment 2's problems
     assign_num = a2_test_cases.__name__[0:2]
     for problem in file_paths:
@@ -53,10 +101,17 @@ def a2_test_cases():
                 output_path = os.path.join(script_dir, testcase[1])
     return None
 
+#writes array in formatted manner
+def write_arr (fptr, temp):
+    mx = max((len(str(ele)) for sub in temp for ele in sub))
+    for row in temp:
+        fptr.write(" ".join(["{:<{mx}}".format(ele,mx=mx) for ele in row]) + '\n')
+
 def main():
     n = int(input('Number of test cases generated: '))
     init_paths(n)
     a1_test_cases()
+    a2_test_cases()
     return None
 
 if __name__ == '__main__':
