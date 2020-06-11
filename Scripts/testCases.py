@@ -10,7 +10,6 @@ import A1_Spiral as a1
 import A2_Cipher as a2
 
 
-import 
 #Additional Packages
 import math
 import json
@@ -66,7 +65,7 @@ def a1_test_cases():
                     try: 
                         write_arr(fptr, a1.create_spiral(dim))
                     except Exception as e: 
-                        print('create_spiral failed: ' + str(dim))
+                        print(a1.create_spiral.__name__ + ' failed (dim): ' + str(dim))
                         print(e)
                     finally:
                         fptr.close()
@@ -83,10 +82,12 @@ def a1_test_cases():
                     try:
                         fptr.write(str(a1.sum_sub_grid(a1.create_spiral(dim), val)))
                     except Exception as e:
-                        print('sum_sub_grid failed (dim, val): ' + '(' + str(dim) + ', ' + str(val) + ') ' + testcase[1])
+                        print(a1.sum_sub_grid.__name__ + ' failed (dim, val): ' + '(' + str(dim) + ', ' + str(val) + ') ' + testcase[1])
                         print(e)
                     finally:
                         fptr.close()
+                else:
+                    print('Either file path incorrect: ' + '\n' + 'Input Path: ' + input_path + 'Output Path: ' + output_path)
     return None
 
 #Generates Assignment 2's testcases
@@ -99,7 +100,30 @@ def a2_test_cases():
             for testcase in file_paths[problem]:
                 input_path = os.path.join(script_dir, testcase[0])
                 output_path = os.path.join(script_dir, testcase[1])
+                phrase = rand.choice(words)
+                fptr = open(input_path, 'w')
+                fptr.write(str(phrase))
+                fptr.close()
+                fptr = open(output_path, 'w')
+                try:
+                    #Determine which problems' testcases are being generated based on file path
+                    if choose_func(a2.encrypt.__name__, input_path, output_path):
+                        fptr.write(a2.encrypt(phrase))
+                    elif choose_func(a2.decrypt.__name__, input_path, output_path):
+                        fptr.write(a2.decrypt(phrase))
+                    else:
+                        print('Either file path incorrect: ' + '\n' + 'Input Path: ' + input_path + 'Output Path: ' + output_path)
+                except Exception as e:
+                    if choose_func(a2.encrypt.__name__, input_path, output_path):
+                        print(a2.encrypt.__name__ + ' failed (phrase): ' + phrase)
+                    elif choose_func(a2.decrypt.__name__, input_path, output_path):
+                        print(a2.decrypt.__name__ + ' failed (phrase): ' + phrase)
+                    print(e)
+                finally:
+                    fptr.close()
     return None
+
+
 
 #writes array in formatted manner
 def write_arr (fptr, temp):
