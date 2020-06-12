@@ -99,6 +99,27 @@ def a2_test_cases():
             for testcase in file_paths[problem]:
                 input_path = os.path.join(script_dir, testcase[0])
                 output_path = os.path.join(script_dir, testcase[1])
+                phrase = rand.choice(words)
+                fptr = open(input_path, 'w')
+                fptr.write(str(phrase))
+                fptr.close()
+                fptr = open(output_path, 'w')
+                try:
+                    #Determine which problems' testcases are being generated based on file path
+                    if choose_func(a2.encrypt.__name__, input_path, output_path):
+                        fptr.write(a2.encrypt(phrase))
+                    elif choose_func(a2.decrypt.__name__, input_path, output_path):
+                        fptr.write(a2.decrypt(phrase))
+                    else:
+                        print('Either file path incorrect: ' + '\n' + 'Input Path: ' + input_path + 'Output Path: ' + output_path)
+                except Exception as e:
+                    if choose_func(a2.encrypt.__name__, input_path, output_path):
+                        print(a2.encrypt.__name__ + ' failed (phrase): ' + phrase)
+                    elif choose_func(a2.decrypt.__name__, input_path, output_path):
+                        print(a2.decrypt.__name__ + ' failed (phrase): ' + phrase)
+                    print(e)
+                finally:
+                    fptr.close()
     return None
 
 #writes array in formatted manner
