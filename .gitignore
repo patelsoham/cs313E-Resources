@@ -1,3 +1,5 @@
 /Assignments/*
 .env
 *.txt
+*.csv
+*.zip
