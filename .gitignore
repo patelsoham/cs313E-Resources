@@ -1,2 +1,8 @@
 /Assignments/*
+/Exams/*
+/Scripts/static_data
 .env
+*.txt
+*.csv
+*.zip
+*.pdf
