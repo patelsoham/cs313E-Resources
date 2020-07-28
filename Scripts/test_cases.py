@@ -12,6 +12,9 @@ import A2_Cipher as a2
 import A3_Intervals as a3
 import A6_ConvexHull as a6
 import A7_Work as a7
+import A9_Boxes as a9
+import A10_MaxPath as a10
+import A13_Josephus as a13
 
 
 #Additional Packages
@@ -34,7 +37,9 @@ choose_func = lambda func_name, input_path, output_path: (func_name in input_pat
 #For input/output.txt file paths
 script_dir = os.getenv('SCRIPT_PATH')
 #Dictionary with each key(problem) having an array of file path tuples for each test case
-file_paths = {'static_data/a1/create_spiral': [], 'static_data/a1/sum_sub_grid': [], 'static_data/a2/encrypt': [], 'static_data/a2/decrypt': [], 'static_data/a3/merge_tuples': [], 'static_data/a3/sort_by_interval_size': [], 'static_data/a6/convex_hull': [], 'static_data/a6/area_poly': [], 'static_data/a7/linear_search': [], 'static_data/a7/binary_search': []}
+file_paths = {'static_data/a1/create_spiral': [], 'static_data/a1/sum_sub_grid': [], 'static_data/a2/encrypt': [], 'static_data/a2/decrypt': [], 'static_data/a3/merge_tuples': [], 'static_data/a3/sort_by_interval_size': [], 
+              'static_data/a6/convex_hull': [], 'static_data/a6/area_poly': [], 'static_data/a7/linear_search': [], 'static_data/a7/binary_search': [], 'static_data/a9/gen_all_boxes': [], 'static_data/a9/largest_nesting_subsets': [], \
+              'static_data/a10/greedy': [], 'static_data/a10/other_methods': [], 'static_data/a13/josephus': []}
 
 #Gets the file_paths
 def init_paths(num_tests):
@@ -211,7 +216,7 @@ def a7_test_cases():
                 fptr = open(output_path, 'w')
                 try:
                     if choose_func(a7.linear_search.__name__, input_path, output_path) or choose_func(a7.binary_search.__name__, input_path, output_path):
-                        fptr.write(str(a7.linear_search(nums[0], nums[1])))
+                        fptr.write(str(a7.binary_search(nums[0], nums[1])))
                     else:
                         print('Either file path incorrect: ' + '\n' + 'Input Path: ' + input_path + 'Output Path: ' + output_path)
                 except Exception as e:
@@ -223,6 +228,108 @@ def a7_test_cases():
                     fptr.close()
     return None
 
+def a9_test_cases():
+    assign_num = a9_test_cases.__name__[0:2]
+    for problem in file_paths:
+        if assign_num in problem:
+            for testcase in file_paths[problem]:
+                input_path = os.path.join(script_dir, testcase[0])
+                output_path = os.path.join(script_dir, testcase[1])
+                fptr = open(input_path, 'w')
+                inpt_boxes = a9.gen_input()
+                fptr.write(str(len(inpt_boxes)) + '\n')
+                for box in inpt_boxes:
+                    fptr.write(str(box[0]) + ' ' + str(box[1]) + ' ' + str(box[2]) + '\n')
+                    box.sort()
+                inpt_boxes.sort()
+                fptr.close()
+                fptr = open(output_path, 'w')
+                try:
+                    if choose_func(a9.gen_all_boxes.__name__, input_path, output_path):
+                        result = []
+                        a9.gen_all_boxes(inpt_boxes, [], 0, result)
+                        assert(len(result) == pow(2, len(inpt_boxes)))
+                        for i in range(len(result)):
+                            for j in range(len(result[i])):
+                                fptr.write(str(result[i][j]) + '\n')
+                            fptr.write('\n')
+                    elif choose_func(a9.largest_nesting_subsets.__name__, input_path, output_path):
+                        result = []
+                        a9.sub_sets_boxes(inpt_boxes, [], 0, result)
+                        nesting_boxes = []
+                        a9.largest_nesting_subsets(result, 0, nesting_boxes)
+                        for i in range(len(nesting_boxes)):
+                            for j in range(len(nesting_boxes[i])):
+                                fptr.write(str(nesting_boxes[i][j]) + '\n')
+                            fptr.write('\n')
+                    else:
+                        print('Either file path incorrect: ' + '\n' + 'Input Path: ' + input_path + ' Output Path: ' + output_path)
+                except Exception as e:
+                    if choose_func(a9.gen_all_boxes.__name__, input_path, output_path):
+                        print(a9.gen_all_boxes.__name__ + ' failed on ' + input_path[-11:] + '\n' + str(e))
+                    elif choose_func(a9.largest_nesting_subsets.__name__, input_path, output_path):
+                        print(a9.largest_nesting_subsets.__name__ + ' failed on ' + input_path[-11:] + '\n' + str(e))
+                finally:
+                    fptr.close()
+    return None
+
+def a10_test_cases():
+    assign_num = a10_test_cases.__name__[0:2]
+    for problem in file_paths:
+        if assign_num in problem:
+            for testcase in file_paths[problem]:
+                input_path = os.path.join(script_dir, testcase[0])
+                output_path = os.path.join(script_dir, testcase[1])
+                fptr = open(input_path, 'w')
+                inpt = a10.gen_input()
+                fptr.write(str(len(inpt)) + '\n')
+                for row in inpt:
+                    for num in row:
+                        fptr.write(str(num) + ' ')
+                    fptr.write('\n')
+                fptr.close()
+                fptr = open(output_path, 'w')
+                try:
+                    if choose_func(a10.greedy.__name__, input_path, output_path):
+                        fptr.write(str(a10.greedy(inpt)))
+                    else:
+                        fptr.write(str(a10.dynamic_prog(inpt)))
+                except Exception as e:
+                    if choose_func(a10.greedy.__name__, input_path, output_path):
+                        print(a10.greedy.__name__ + ' failed on ' + input_path[-11:] + '\n' + str(e))
+                    else:
+                        print('Other methods failed on ' + input_path[-11:] + '\n' + str(e))
+                finally:
+                    fptr.close()
+    return None
+
+def a13_test_cases():
+    assign_num = a13_test_cases.__name__[0:2]
+    for problem in file_paths:
+        if assign_num in problem:
+            for testcase in file_paths[problem]:
+                input_path = os.path.join(script_dir, testcase[0])
+                output_path = os.path.join(script_dir, testcase[1])
+                fptr = open(input_path, 'w')
+                inpt = a13.gen_input()
+                for num in inpt:
+                    fptr.write(str(num) + '\n')
+                fptr = open(output_path, 'w')
+                try:
+                    if choose_func(a13.josephus.__name__, input_path, output_path):
+                        output = a13.josephus(inpt[0], inpt[1], inpt[2])
+                        for num in output:
+                            fptr.write(str(num) + ' ')
+                    else:
+                        print('Either file path incorrect: ' + '\n' + 'Input Path: ' + input_path + ' Output Path: ' + output_path)
+                except Exception as e:
+                    if choose_func(a13.josephus.__name__, input_path, output_path):
+                        print(a13.josephus.__name__ + ' failed on ' + input_path[-11:] + '\n' + str(e))
+                    else:
+                        print('Unknown Bug for  ' + input_path[-11:] + '\n' + str(e))
+                finally:
+                    fptr.close()
+    return None
 #writes array in formatted manner
 def write_arr (fptr, temp):
     mx = max((len(str(ele)) for sub in temp for ele in sub))
@@ -248,6 +355,9 @@ def main():
     a3_test_cases()
     a6_test_cases()
     a7_test_cases()
+    a9_test_cases()
+    a10_test_cases()
+    a13_test_cases()
     zip_test_cases()
     return None
 
