@@ -20,7 +20,7 @@ class Submission():
     def update_score(self, due_date):
         try:
             diff = math.ceil((self.submit_time - due_date - datetime.timedelta(minutes=59)).total_seconds()/86400)
-            print('Difference in days: ' + str(diff))
+            #print('Difference in days: ' + str(diff))
             self.score -= (diff*10) if diff > 0 else 0
             self.score = self.score if self.score > 0 else 0.0
         except Exception as e:

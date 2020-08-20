@@ -23,9 +23,10 @@ dt_frmt = lambda submit_time: datetime.datetime.strptime(submit_time,'%Y-%m-%dT%
 
 #Get assignment names, canvas ids, and due dates
 def get_assignments(reading_assigns, prog_assigns, exams):
-    response = requests.get(canvas_endpoint + '/assignments?per_page=50', headers=headers).json()
+    response = requests.get(canvas_endpoint + '/assignments?per_page=100', headers=headers).json()
     for assignment in response:
         #TODO: determine a better condition to only include reading and programming assignments
+        print(assignment['name'])
         if str(assignment['name']).lower() in reading_assigns or str(assignment['name']).lower() in prog_assigns or str(assignment['name']).lower() in exams:
             assignment_info.update({str(assignment['name']): [str(assignment['id']), dt_frmt(str(assignment['due_at']))]})
             print('Assignment - ' + str(assignment['name']) + ': ' + str(assignment['id']) + ', ' + str(dt_frmt(str(assignment['due_at']))))
@@ -49,7 +50,7 @@ def get_folders():
 def update_readings():
     get_students()
     re_grades = zg.get_readings()
-    data = [{'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}]
+    data = [{'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}, {'grade_data': {}}]
     failed_eids = set()
     responses = []
     for i in range(len(data)): 
@@ -67,6 +68,7 @@ def update_readings():
 def update_assignments():
     get_students()
     hackerrank_grades = ag.get_submissions([key[1:] for key in assignment_info.keys() if key[0] == 'A'], False)
+    print(assignment_info)
     failed_eids = set()
     data = {}
     responses = []
@@ -76,9 +78,9 @@ def update_assignments():
         for entry in hackerrank_grades[assignment]:
             try:
                 #Update Score Based on when late penalties
-                #print('Unupdated Score: ' + str(entry.eid) + ' ' + str(entry.score) + ' ' + str(entry.submit_time) + ' ' + str(assignment_info[assignment][1]))
+                print('Unupdated Score: ' + str(entry.eid) + ' ' + str(entry.score) + ' ' + str(entry.submit_time) + ' ' + str(assignment_info[assignment][1]))
                 entry.update_score(assignment_info[assignment][1])
-                #print('Updated Score: ' + str(entry.eid) + ' ' + str(entry.score) + ' ' + str(entry.pdf) + '\n\n')
+                print('Updated Score: ' + str(entry.eid) + ' ' + str(entry.score) + ' ' + str(entry.pdf) + '\n\n')
                 data[assignment]['grade_data'].update({student_info[entry.eid.lower()]: {'posted_grade': entry.get_score()}})
                 if entry.partner_eid != None:
                     #add in partner submission after grade adjustments
@@ -86,7 +88,7 @@ def update_assignments():
             except Exception as err:
                 failed_eids.add(entry.eid)
                 print(err)
-        responses.append(requests.post(canvas_endpoint + '/assignments/' + assignment_info[assignment][0] + '/submissions/update_grades', headers=headers, json=(data[assignment])))
+        #responses.append(requests.post(canvas_endpoint + '/assignments/' + assignment_info[assignment][0] + '/submissions/update_grades', headers=headers, json=(data[assignment])))
         #Debugging output
         print(str(responses) + '\n' + str(failed_eids))
     return None
@@ -94,7 +96,7 @@ def update_assignments():
 if __name__ == '__main__':
     prog_assignments = set(input('Enter which programming assignments are being graded: ').split())
     reading_assignments = set(input('Enter which reading assignments are being graded: ').split())
-    get_assignments(prog_assignments, reading_assignments, exams)
-    #update_assignments()
+    get_assignments(prog_assignments, reading_assignments, [])
+    update_assignments()
     #update_readings()
     

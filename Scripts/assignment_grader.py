@@ -13,13 +13,14 @@ headers = {'Authorization': 'Bearer {}'.format(hackerrank_key), 'content-type': 
 #'Assignment' in test['name'].split(' ')[0] and (['1', '2', '3', '4', '5', '6', '7', '9', '10'].count(test['name'].split(' ')[1]) != 0)
 
 #Extracts name and id of Assignment tests (eventually will also include exams)
-name_id = lambda info, assignments: {shorten_name(test): test['id'] for test in info if 'Assignment' in test['name'].split(' ')[0] and (test['name'].split(' ')[1] in ['10'])}
+name_id = lambda info, assignments: {shorten_name(test): test['id'] for test in info if 'Assignment' in test['name'].split(' ')[0] and (['14'].count(test['name'].split(' ')[1]) != 0)}
 file_path = lambda submission: 'assignment_reports/' + (submission.assignment_name.lower()) + '/' + (submission.eid) + '_' + (submission.assignment_name) + '_report.pdf'
 shorten_name = lambda test: str(test['name'][:12][0] + test['name'].split(' ')[1])
 #Get dictionary of test names and ids as key value pairs
 
 def get_tests(assignments):
     try:
+        print(assignments)
         return name_id(requests.get(hackerrank_endpoint + 'tests?limit=30&offset=0', headers=headers).json()['data'], assignments)
     except Exception as e:
         print('Failed to get all tests.')
@@ -44,6 +45,7 @@ def get_submissions(assignments, download):
                     print('Failed on ' + submission.eid + '\n' + str(e))
         print('Number of reports successfully downloaded: ' + str(sum(1 for resp in responses.values() if resp.ok)) + '\n')
         print(str(responses) + '\n')
+    #write_output(student_info)
     return student_info
 
 #Get one assignment's submissions
@@ -51,7 +53,7 @@ def get_assignment_submissions(assignment_name, assignment_id):
     result = []
     initialized_submissions = set()
     try:
-        submissions = requests.get(hackerrank_endpoint + 'tests/' + assignment_id + '/candidates?limit=59&offset=0', headers=headers).json()['data']
+        submissions = requests.get(hackerrank_endpoint + 'tests/' + assignment_id + '/candidates?limit=100&offset=0', headers=headers).json()['data']
         for entry in submissions:
             if entry['status'] == 7:
                 #Get Both Student and Partner's Submissions (If there is a partner one)
