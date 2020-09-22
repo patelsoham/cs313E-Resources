@@ -23,7 +23,7 @@ def get_readings():
     csv = get_csv_path()
     try:
         dataset = pd.read_csv(csv)
-        dataset = dataset.drop([col for col in list(dataset) if col != 'Student ID' and 'RE' not in col], axis=1)
+        dataset = dataset.drop([col for col in list(dataset) if col != 'Student ID' and 'E' not in col], axis=1)
         for col in dataset:
             if col != 'Student ID':
                 dataset[col] = (dataset[col] /100) * int(col[5:8])

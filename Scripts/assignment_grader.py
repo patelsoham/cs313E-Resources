@@ -13,14 +13,15 @@ headers = {'Authorization': 'Bearer {}'.format(hackerrank_key), 'content-type': 
 #'Assignment' in test['name'].split(' ')[0] and (['1', '2', '3', '4', '5', '6', '7', '9', '10'].count(test['name'].split(' ')[1]) != 0)
 
 #Extracts name and id of Assignment tests (eventually will also include exams)
-name_id = lambda info, assignments: {shorten_name(test): test['id'] for test in info if 'Assignment' in test['name'].split(' ')[0] and (['14'].count(test['name'].split(' ')[1]) != 0)}
+name_id = lambda info, assignments: {shorten_name(test): test['id'] for test in info if 'Assignment' in test['name'].split(' ')[0] and (test['name'].split(' ')[1] in assignments)}
 file_path = lambda submission: 'assignment_reports/' + (submission.assignment_name.lower()) + '/' + (submission.eid) + '_' + (submission.assignment_name) + '_report.pdf'
-shorten_name = lambda test: str(test['name'][:12][0] + test['name'].split(' ')[1])
+shorten_name = lambda test: str(test['name'][:12][0] + test['name'].split(' ')[1][0])
 #Get dictionary of test names and ids as key value pairs
 
 def get_tests(assignments):
     try:
-        print(assignments)
+        for i in range(len(assignments)):
+            assignments[i] = assignments[i] + ":"
         return name_id(requests.get(hackerrank_endpoint + 'tests?limit=30&offset=0', headers=headers).json()['data'], assignments)
     except Exception as e:
         print('Failed to get all tests.')
@@ -57,11 +58,11 @@ def get_assignment_submissions(assignment_name, assignment_id):
         for entry in submissions:
             if entry['status'] == 7:
                 #Get Both Student and Partner's Submissions (If there is a partner one)
-                cur_submission = sub.Submission(get_eid(entry['candidate_details']), get_partner_eid(entry['candidate_details']), assignment_name, entry['percentage_score'], entry['plagiarism_status'], entry['pdf_url'], entry['attempt_endtime'])
+                cur_submission = sub.Submission(get_eid(entry['candidate_details']), get_partner_eid(entry['candidate_details']), assignment_name, entry['score'], entry['plagiarism_status'], entry['pdf_url'], entry['attempt_endtime'])
                 #Check which submission has a higher score and update the result list accordingly
                 if cur_submission in initialized_submissions:
-                    added_submission = result.pop(result.index(cur_submission))
-                    result.append(max(cur_submission, added_submission, key=lambda x: x.score))
+                    prev_submission = result.pop(result.index(cur_submission))
+                    result.append(max(cur_submission, prev_submission, key=lambda x: x.score))
                 else:
                     result.append(cur_submission)
                     initialized_submissions.add(cur_submission)
@@ -81,7 +82,7 @@ def write_output(result):
 def get_eid(candidate_details):
     for detail in candidate_details:
         if detail['title'] == 'EID':
-            return detail['value'].strip()
+            return detail['value'].strip().lower()
     return None
 
 #get partner eid if there is one
@@ -89,9 +90,9 @@ def get_partner_eid(candidate_details):
     for detail in candidate_details:
         if detail['title'] == 'Partner EID':
             if detail['value'] == 'anh368':
-                return os.getenv('MISTYPED_EID').strip()
+                return os.getenv('MISTYPED_EID').strip().lower()
             else:
-                return detail['value'].strip()
+                return detail['value'].strip().lower()
     return ''
 
 def download_report(submission): 
@@ -100,7 +101,7 @@ def download_report(submission):
     return response
 
 if __name__ == '__main__':
-    get_tests(['10'])
+    write_output(get_submissions(['1'], False))
     
 
     
