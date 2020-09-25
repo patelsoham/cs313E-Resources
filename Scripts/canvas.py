@@ -47,22 +47,28 @@ def get_folders():
             print(str(folder['name']) + ' : ' +  str(folder['id']))
 
 #updates reading assignments in the gradebook
-def update_readings():
+def update_readings(readings):
     get_students()
     re_grades = zg.get_readings()
-    data = [{'grade_data': {}}, {'grade_data': {}}]
+    data = {}
+    for i in readings:
+        data.update({i : {'grade_data': {}}})
     failed_eids = set()
     responses = []
-    for i in range(len(data)): 
+    fptr = open('static_data/zybooks.txt', 'w')
+    for name in readings: 
         for student in re_grades:
             try:
-                data[i]['grade_data'].update({student_info[student.lower()]: {'posted_grade': re_grades[student][i]}})
+                print(f'{student}: {re_grades[student][int(name[1:]) - 1]}')
+                data[name]['grade_data'].update({student_info[student.lower()]: {'posted_grade': re_grades[student][int(name[1:]) - 1]}})
             except Exception as e:
+                print(e)
                 failed_eids.add(student)
-        responses.append(requests.post(canvas_endpoint + '/assignments/' + assignment_info['E' + str(i+1)][0] + '/submissions/update_grades', headers=headers, json=(data[i])))
-    #Testing purposes (determine if requests was successful and which eids failed)
-    print(str(responses) + '\n' + str(failed_eids))
-    pass
+        responses.append(requests.post(canvas_endpoint + '/assignments/' + assignment_info[name.upper()][0] + '/submissions/update_grades', headers=headers, json=(data[name])))
+        #Testing purposes (determine if requests was successful and which eids failed)
+        fptr.write(str('\n____________________________________________________________________________________' + name.upper() +  '____________________________________________________________________________________' + '\n'))
+        fptr.write(str(responses) + '\n' + str(failed_eids) + ' ' + str(len(failed_eids)))
+    fptr.close()
 
 #updates programming assignments in gradebook.
 def update_assignments():
@@ -97,7 +103,7 @@ if __name__ == '__main__':
     prog_assignments = set(input('Enter which programming assignments are being graded: ').split())
     reading_assignments = set(input('Enter which reading assignments are being graded: ').split())
     get_assignments(prog_assignments, reading_assignments, [])
-    update_assignments()
-    # update_readings()
+    #update_assignments()
+    update_readings(reading_assignments)
     
     
