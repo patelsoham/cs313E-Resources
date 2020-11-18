@@ -5,6 +5,9 @@ import os
 import json
 import requests
 import datetime
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 import assignment_grader as ag
 import zybooks_grader as zg
@@ -67,7 +70,12 @@ def update_readings(readings):
         responses.append(requests.post(canvas_endpoint + '/assignments/' + assignment_info[name.upper()][0] + '/submissions/update_grades', headers=headers, json=(data[name])))
         #Testing purposes (determine if requests was successful and which eids failed)
         fptr.write(str('\n____________________________________________________________________________________' + name.upper() +  '____________________________________________________________________________________' + '\n'))
-        fptr.write(str(responses) + '\n' + str(failed_eids) + ' ' + str(len(failed_eids)))
+        fptr.write(str(responses) + '\n'  + str(len(failed_eids)) + '\n')
+        for id in failed_eids:
+            fptr.write(f'{id}: ')
+            for name in readings:
+                fptr.write(f'({name} - {re_grades[student][int(name[1:]) - 1]}), ')
+            fptr.write('\n')
     fptr.close()
 
 #updates programming assignments in gradebook.
@@ -99,11 +107,32 @@ def update_assignments():
         fptr.write('Debugging output ' + str(responses) + '\n' + str(failed_eids) + '\n' + str(len(failed_eids)) + ' ' + str(len(student_info)) + '\n')
     return None
 
+def get_test_csv():
+    cols = [col for col in list(pd.read_csv('static_data/CS313E_Exam_2_report_28434.csv', nrows = 1)) if col == 'Eid' or 'Question ' in col]
+    dataset = pd.read_csv('static_data/CS313E_Exam_2_report_28434.csv', usecols=cols)
+    dataset = dataset.drop('Question 1', axis=1)
+    dataset.insert(len(dataset.columns), 'Test 2', 0, True)
+    for i in range(len(dataset)):
+        question_scores = [int(dataset[dataset.columns[n]][i]) for n in range(1,len(dataset.columns) - 1)]
+        dataset['Test 2'][i] = sum(question_scores) - min(question_scores[:-1])
+    freq_distribution = dataset['Test 2'].value_counts().to_dict()
+    plt.bar(list(freq_distribution.keys()), list(freq_distribution.values()))
+    plt.xlabel('Test Scores')
+    plt.ylabel('# of Students')
+    plt.title('Score Distributions')
+    plt.show()
+    scores = np.array(dataset['Test 2'].tolist())
+    print(f'Average: {np.average(scores)}')
+    print(f'Median: {np.median(scores)}')
+    print(f'Std Dev: {np.std(scores)}') 
+    dataset.to_csv('test_2_grades.csv')
+
 if __name__ == '__main__':
-    prog_assignments = set(input('Enter which programming assignments are being graded: ').split())
-    reading_assignments = set(input('Enter which reading assignments are being graded: ').split())
-    get_assignments(prog_assignments, reading_assignments, [])
-    #update_assignments()
-    update_readings(reading_assignments)
+    # prog_assignments = set(input('Enter which programming assignments are being graded: ').split())
+    # reading_assignments = set(input('Enter which reading assignments are being graded: ').split())
+    # get_assignments(prog_assignments, reading_assignments, [])
+    # #update_assignments()
+    # update_readings(reading_assignments)
+    get_test_csv()
     
     

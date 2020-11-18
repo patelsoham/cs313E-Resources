@@ -12,10 +12,12 @@ import A2_Cipher as a2
 import A3_Intervals as a3
 import A6_ConvexHull as a6
 import A7_Work as a7
-import A8_PathSum as a8
+import A8_PathSum_Fall as a8
 import A9_Boxes as a9
 import A10_MaxPath as a10
 import A13_Josephus as a13
+import Fall_A17_Radix as a17
+import Fall_A21_Encryption as a21
 
 
 #Additional Packages
@@ -38,9 +40,10 @@ choose_func = lambda func_name, input_path, output_path: (func_name in input_pat
 #For input/output.txt file paths
 script_dir = os.getenv('SCRIPT_PATH')
 #Dictionary with each key(problem) having an array of file path tuples for each test case
-file_paths = {'static_data/a1/create_spiral': [], 'static_data/a1/sum_sub_grid': [], 'static_data/a2/encrypt': [], 'static_data/a2/decrypt': [], 'static_data/a3/merge_tuples': [], 'static_data/a3/sort_by_interval_size': [], \
-              'static_data/a6/convex_hull': [], 'static_data/a6/area_poly': [], 'static_data/a7/linear_search': [], 'static_data/a7/binary_search': [], 'static_data/a8/count_paths': [], 'static_data/a8/path_sum': [], \
-              'static_data/a9/gen_all_boxes': [], 'static_data/a9/largest_nesting_subsets': [], 'static_data/a10/greedy': [], 'static_data/a10/other_methods': [], 'static_data/a13/josephus': []}
+file_paths = {'static_data/summer/a1/create_spiral': [], 'static_data/summer/a1/sum_sub_grid': [], 'static_data/summer/a2/encrypt': [], 'static_data/summer/a2/decrypt': [], 'static_data/summer/a3/merge_tuples': [], 'static_data/summer/a3/sort_by_interval_size': [], \
+              'static_data/summer/a6/convex_hull': [], 'static_data/summer/a6/area_poly': [], 'static_data/summer/a7/linear_search': [], 'static_data/summer/a7/binary_search': [], 'static_data/summer/a8/count_paths': [], 'static_data/summer/a8/path_sum': [], \
+              'static_data/summer/a9/gen_all_boxes': [], 'static_data/summer/a9/largest_nesting_subsets': [], 'static_data/summer/a10/greedy': [], 'static_data/summer/a10/other_methods': [], 'static_data/summer/a13/josephus': [], \
+              'static_data/fall/a17/radix_sort': [], 'static_data/fall/a21/encrypt_and_decrypt': []}
 
 #Gets the file_paths
 def init_paths(num_tests):
@@ -261,7 +264,6 @@ def a8_test_cases():
                 finally:
                     fptr.close()
 
-
 def a9_test_cases():
     assign_num = a9_test_cases.__name__[0:2]
     for problem in file_paths:
@@ -338,7 +340,7 @@ def a10_test_cases():
     return None
 
 def a13_test_cases():
-    assign_num = a13_test_cases.__name__[0:2]
+    assign_num = a13_test_cases.__name__[0:3]
     for problem in file_paths:
         if assign_num in problem:
             for testcase in file_paths[problem]:
@@ -353,7 +355,7 @@ def a13_test_cases():
                     if choose_func(a13.josephus.__name__, input_path, output_path):
                         output = a13.josephus(inpt[0], inpt[1], inpt[2])
                         for num in output:
-                            fptr.write(str(num) + ' ')
+                            fptr.write(str(num) + '\n')
                     else:
                         print('Either file path incorrect: ' + '\n' + 'Input Path: ' + input_path + ' Output Path: ' + output_path)
                 except Exception as e:
@@ -364,6 +366,56 @@ def a13_test_cases():
                 finally:
                     fptr.close()
     return None
+
+def a17_test_cases():
+    assign_num = a17_test_cases.__name__[0:2]
+    for problem in file_paths:
+        if assign_num in problem:
+            for testcase in file_paths[problem]:
+                input_path = os.path.join(script_dir, testcase[0])
+                output_path = os.path.join(script_dir, testcase[1])
+                fptr = open(input_path, 'w')
+                inpt = a17.gen_input()
+                fptr.write(str(len(inpt)) + '\n')
+                for string in inpt:
+                    fptr.write(str(string) + '\n')
+                fptr.close()
+                fptr = open(output_path, 'w')
+                try:
+                    if choose_func(a17.radix_sort.__name__, input_path, output_path):
+                        inpt.sort()
+                        fptr.write(str(inpt))
+                    else:
+                        print('Either file path incorrect: ' + '\n' + 'Input Path: ' + input_path + ' Output Path: ' + output_path)
+                except Exception as e:
+                    if choose_func(a17.radix_sort.__name__, input_path, output_path):
+                        print(a17.radix_sort.__name__ + ' failed on ' + input_path[-11:] + '\n' + str(e))
+                    else:
+                        print('Unknown Bug for  ' + input_path[-11:] + '\n' + str(e))
+                finally:
+                    fptr.close()
+
+def a21_test_cases():
+    assign_num = a21_test_cases.__name__[0:3]
+    for problem in file_paths:
+        if assign_num in problem:
+            for testcase in file_paths[problem]:
+                input_path = os.path.join(script_dir, testcase[0])
+                output_path = os.path.join(script_dir, testcase[1])
+                fptr = open(input_path, 'w')
+                inpt, bst_tree = a21.gen_input()
+                for strng in inpt:
+                    fptr.write(strng + '\n')
+                fptr.close()
+                fptr = open(output_path, 'w')
+                try:
+                    fptr.write(bst_tree.encrypt(inpt[1]) + '\n')
+                    fptr.write(bst_tree.decrypt(inpt[2]) + '\n')
+                except Exception as e:
+                    print('Unknown Bug for  ' + input_path[-11:] + '\n' + str(e))
+                finally:
+                    fptr.close()
+                
 #writes array in formatted manner
 def write_arr (fptr, temp):
     mx = max((len(str(ele)) for sub in temp for ele in sub))
@@ -379,20 +431,13 @@ def zip_test_cases():
                 shutil.make_archive(dir_path.rsplit('/', 1)[1] + '_testcases','zip', dir_path)
                 shutil.move(dir_path.rsplit('/', 1)[1] + '_testcases.zip', os.path.join(script_dir, 'static_data/test_case_zips'))
             except Exception as e:
-                os.remove(dir_path.rsplit('/', 1)[1] + '_testcases.zip')
                 print(e)
+                os.remove(dir_path.rsplit('/', 1)[1] + '_testcases.zip')
+                
 
 def main():
     init_paths(int(input('Number of test cases generated: ')))
-    a1_test_cases()
-    a2_test_cases()
-    a3_test_cases()
-    a6_test_cases()
-    a7_test_cases()
-    a8_test_cases()
-    a9_test_cases()
-    a10_test_cases()
-    a13_test_cases()
+    a21_test_cases()
     zip_test_cases()
     return None
 

@@ -7,7 +7,7 @@
 *.csv
 *.zip
 *.pdf
-/a6_output/*
-/a7_output/*
-/a6_submissions/*
-/a7_submissions/*
+/Scripts/a6_output/*
+/Scripts/a7_output/*
+/Scripts/a6_submissions/*
+/Scripts/a7_submissions/*
