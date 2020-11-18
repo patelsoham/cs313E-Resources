@@ -1,8 +1,13 @@
 /Assignments/*
 /Exams/*
 /Scripts/static_data
+/Scripts/.ipynb_checkpoints
 .env
 *.txt
 *.csv
 *.zip
 *.pdf
+/a6_output/*
+/a7_output/*
+/a6_submissions/*
+/a7_submissions/*
