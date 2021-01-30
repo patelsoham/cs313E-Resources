@@ -17,30 +17,36 @@ canvas_key = os.getenv('CANVAS_KEY')
 canvas_endpoint = os.getenv('CANVAS_ENDPOINT')
 headers = {'authorization': 'Bearer {}'.format(canvas_key), 'content-type': 'application/json'}
 
-student_info = {}
 assignment_info = {}
 folder_info = {}
 
 #formats assignment due dates into datetime objects. TODO: format into local time rather than UTC
 dt_frmt = lambda submit_time: datetime.datetime.strptime(submit_time,'%Y-%m-%dT%H:%M:%SZ')
+update_dict = lambda sis_user_id, canvas_id, reverse: {str(canvas_id).lower(): [str(sis_user_id).lower(), 0]} if reverse else {str(sis_user_id).lower(): [str(canvas_id).lower(), 0]}
 
 #Get assignment names, canvas ids, and due dates
-def get_assignments(reading_assigns, prog_assigns, exams):
+def get_assignments(reading_assigns = [], prog_assigns = [], exams = []):
     response = requests.get(canvas_endpoint + '/assignments?per_page=100', headers=headers).json()
     for assignment in response:
         #TODO: determine a better condition to only include reading and programming assignments
         #print(assignment['name'])
         if str(assignment['name']).lower() in reading_assigns or str(assignment['name']).lower() in prog_assigns or str(assignment['name']).lower() in exams:
-            assignment_info.update({str(assignment['name']): [str(assignment['id']), dt_frmt(str(assignment['due_at']))]})
-            #print('Assignment - ' + str(assignment['name']) + ': ' + str(assignment['id']) + ', ' + str(dt_frmt(str(assignment['due_at']))))
+            if str(assignment['name']).lower() in ['a6', 'a7', 'a8']:
+                assignment_info.update({str(assignment['name']): [str(assignment['id']), dt_frmt('2020-10-30T04:59:59Z')]})
+            else:
+                assignment_info.update({str(assignment['name']): [str(assignment['id']), dt_frmt(str(assignment['due_at']))]})
+            print('Assignment - ' + str(assignment['name']) + ': ' + str(assignment['id']) + ', ' + str(assignment_info[str(assignment['name'])][1]))
+    return assignment_info
 
 #Get student eids and canvas id as key value pairs.
-def get_students():
+def get_students(reverse = False):
+    student_info = {}
     response = requests.get(canvas_endpoint + '/students', headers=headers).json()
     for student in response:
         #sis_user_id == eid
-        student_info.update({str(student['sis_user_id']).lower() : str(student['id']).lower()})
+        student_info.update(update_dict(student['sis_user_id'], student['id'], reverse))
         #print(str(student['sis_user_id']).lower() + ' ' + str(student['id']).lower())
+    return student_info
 
 def get_folders():
     response = requests.get(canvas_endpoint + '/folders?per_page=50', headers=headers).json()
@@ -51,7 +57,7 @@ def get_folders():
 
 #updates reading assignments in the gradebook
 def update_readings(readings):
-    get_students()
+    student_info = get_students()
     re_grades = zg.get_readings()
     data = {}
     for i in readings:
@@ -63,7 +69,7 @@ def update_readings(readings):
         for student in re_grades:
             try:
                 print(f'{student}: {re_grades[student][int(name[1:]) - 1]}')
-                data[name]['grade_data'].update({student_info[student.lower()]: {'posted_grade': re_grades[student][int(name[1:]) - 1]}})
+                data[name]['grade_data'].update({student_info[student.lower()][0]: {'posted_grade': re_grades[student][int(name[1:]) - 1]}})
             except Exception as e:
                 print(e)
                 failed_eids.add(student)
@@ -107,9 +113,9 @@ def update_assignments():
         fptr.write('Debugging output ' + str(responses) + '\n' + str(failed_eids) + '\n' + str(len(failed_eids)) + ' ' + str(len(student_info)) + '\n')
     return None
 
-def get_test_csv():
-    cols = [col for col in list(pd.read_csv('static_data/CS313E_Exam_2_report_28434.csv', nrows = 1)) if col == 'Eid' or 'Question ' in col]
-    dataset = pd.read_csv('static_data/CS313E_Exam_2_report_28434.csv', usecols=cols)
+def get_test_csv(csv):
+    cols = [col for col in list(pd.read_csv(csv, nrows = 1)) if col == 'Eid' or 'Question ' in col]
+    dataset = pd.read_csv(csv, usecols=cols)
     dataset = dataset.drop('Question 1', axis=1)
     dataset.insert(len(dataset.columns), 'Test 2', 0, True)
     for i in range(len(dataset)):
@@ -128,11 +134,9 @@ def get_test_csv():
     dataset.to_csv('test_2_grades.csv')
 
 if __name__ == '__main__':
-    # prog_assignments = set(input('Enter which programming assignments are being graded: ').split())
-    # reading_assignments = set(input('Enter which reading assignments are being graded: ').split())
-    # get_assignments(prog_assignments, reading_assignments, [])
-    # #update_assignments()
-    # update_readings(reading_assignments)
-    get_test_csv()
+    prog_assignments = set(input('Enter which programming assignments are being graded: ').split())
+    reading_assignments = set(input('Enter which reading assignments are being graded: ').split())
+    get_assignments(prog_assignments, reading_assignments, [])
+    update_readings(reading_assignments)
     
     

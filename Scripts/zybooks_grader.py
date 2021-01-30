@@ -41,4 +41,4 @@ def get_readings():
 
 if __name__ == '__main__':
     result = get_readings()
-    print(result)
+    print(type(result))

@@ -8,16 +8,6 @@ sys.path.insert(1, os.getenv('SOL_PATH'))
 
 #Assignment Imports
 import A1_Spiral as a1
-import A2_Cipher as a2
-import A3_Intervals as a3
-import A6_ConvexHull as a6
-import A7_Work as a7
-import A8_PathSum_Fall as a8
-import A9_Boxes as a9
-import A10_MaxPath as a10
-import A13_Josephus as a13
-import Fall_A17_Radix as a17
-import Fall_A21_Encryption as a21
 
 
 #Additional Packages
@@ -40,10 +30,7 @@ choose_func = lambda func_name, input_path, output_path: (func_name in input_pat
 #For input/output.txt file paths
 script_dir = os.getenv('SCRIPT_PATH')
 #Dictionary with each key(problem) having an array of file path tuples for each test case
-file_paths = {'static_data/summer/a1/create_spiral': [], 'static_data/summer/a1/sum_sub_grid': [], 'static_data/summer/a2/encrypt': [], 'static_data/summer/a2/decrypt': [], 'static_data/summer/a3/merge_tuples': [], 'static_data/summer/a3/sort_by_interval_size': [], \
-              'static_data/summer/a6/convex_hull': [], 'static_data/summer/a6/area_poly': [], 'static_data/summer/a7/linear_search': [], 'static_data/summer/a7/binary_search': [], 'static_data/summer/a8/count_paths': [], 'static_data/summer/a8/path_sum': [], \
-              'static_data/summer/a9/gen_all_boxes': [], 'static_data/summer/a9/largest_nesting_subsets': [], 'static_data/summer/a10/greedy': [], 'static_data/summer/a10/other_methods': [], 'static_data/summer/a13/josephus': [], \
-              'static_data/fall/a17/radix_sort': [], 'static_data/fall/a21/encrypt_and_decrypt': []}
+file_paths = {'static_data/spring/a1': []}
 
 #Gets the file_paths
 def init_paths(num_tests):
@@ -65,40 +52,11 @@ def a1_test_cases():
             for testcase in file_paths[problem]:
                 input_path = os.path.join(script_dir, testcase[0])
                 output_path = os.path.join(script_dir, testcase[1])
-                #Determine which problems' testcases are being generated based on file path
-                if choose_func(a1.create_spiral.__name__, input_path, output_path):
-                    #create_spiral's test cases
-                    dim = rand.randint(5, 100)
-                    #Write input values
-                    fptr = open(input_path, 'w')
-                    fptr.write(str(dim))
-                    fptr.close()
-                    #write output
-                    fptr = open(output_path, 'w')
-                    try: 
-                        write_arr(fptr, a1.create_spiral(dim))
-                    except Exception as e: 
-                        print(a1.create_spiral.__name__ + ' failed (dim): ' + str(dim) + '\n' + e)
-                    finally:
-                        fptr.close()
-                elif choose_func(a1.sum_sub_grid.__name__, input_path, output_path):
-                    #sum_sub_grid's test cases
-                    dim = rand.randint(5, 100)
-                    val = rand.randint(1, math.ceil(pow(dim, 2)*1.5))
-                    #write input values
-                    fptr = open(input_path, 'w')
-                    fptr.write(str(dim) + ' ' + str(val))
-                    fptr.close()
-                    #write output
-                    fptr = open(output_path, 'w')
-                    try:
-                        fptr.write(str(a1.sum_sub_grid(a1.create_spiral(dim), val)))
-                    except Exception as e:
-                        print(a1.sum_sub_grid.__name__ + ' failed (dim, val): ' + '(' + str(dim) + ', ' + str(val) + ') ' + testcase[1] + '\n' + e)
-                    finally:
-                        fptr.close()
-                else:
-                    print('Either file path incorrect: ' + '\n' + 'Input Path: ' + input_path + 'Output Path: ' + output_path)
+                dim, inpt_array = a1.gen_input(open(input_path, 'w'))
+                try:
+                    a1.write_output(open(output_path, 'w'), inpt_array, dim)
+                except Exception as e:
+                    print(f'Failed on following testcase: {input_path[5:]} because of following error {str(e)}')
     return None
 
 #Generates Assignment 2's testcases
@@ -326,10 +284,7 @@ def a10_test_cases():
                 fptr.close()
                 fptr = open(output_path, 'w')
                 try:
-                    if choose_func(a10.greedy.__name__, input_path, output_path):
-                        fptr.write(str(a10.greedy(inpt)))
-                    else:
-                        fptr.write(str(a10.dynamic_prog(inpt)))
+                    a10.write_output(fptr, inpt)
                 except Exception as e:
                     if choose_func(a10.greedy.__name__, input_path, output_path):
                         print(a10.greedy.__name__ + ' failed on ' + input_path[-11:] + '\n' + str(e))
@@ -437,8 +392,7 @@ def zip_test_cases():
 
 def main():
     init_paths(int(input('Number of test cases generated: ')))
-    a21_test_cases()
-    zip_test_cases()
+    a1_test_cases()
     return None
 
 if __name__ == '__main__':
